@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Math - Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0d1117;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: #1c2128;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 191, 255, 0.2);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .app-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff00ff, #00ffff);
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            color: #00bfff;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #8b949e;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: #0d1117;
+            border: 2px solid #30363d;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #00bfff;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00bfff, #0080ff);
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #30363d;
+        }
+
+        .toggle-auth {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #8b949e;
+        }
+
+        .toggle-auth a {
+            color: #00bfff;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .toggle-auth a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: rgba(255, 77, 109, 0.2);
+            border: 1px solid #ff4d6d;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #ff4d6d;
+            font-size: 14px;
+            display: none;
+        }
+
+        .success-message {
+            background: rgba(0, 191, 255, 0.2);
+            border: 1px solid #00bfff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #00bfff;
+            font-size: 14px;
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00bfff;
+        }
+
+        .spinner {
+            border: 3px solid #30363d;
+            border-top: 3px solid #00bfff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Main App Styles */
+        .app-container {
+            display: none;
+        }
+
+        .app-container.active {
+            display: block;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #00bfff, #0080ff);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #ff00ff, #00ffff);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .app-title h1 {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .app-title p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-content {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stats-card {
+            background: #1c2128;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: #0d1117;
+            padding: 15px 10px;
+            border-radius: 12px;
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00bfff;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #8b949e;
+            margin-top: 5px;
+        }
+
+        .welcome-message {
+            background: linear-gradient(135deg, rgba(0, 191, 255, 0.2), rgba(0, 128, 255, 0.2));
+            border: 2px solid #00bfff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .welcome-message h2 {
+            color: #00bfff;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .sync-status {
+            font-size: 12px;
+            color: #8b949e;
+            margin-top: 10px;
+        }
+
+        .sync-status.synced {
+            color: #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login/Signup Container -->
+    <div id="auth-container" class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="app-logo">📊</div>
+                <h1>Speed Math</h1>
+                <p>Master math with practice</p>
+            </div>
+
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" required>
+                </div>
+                <button class="btn" onclick="handleLogin()">🚀 Login</button>
+                <div class="toggle-auth">
+                    Don't have an account? <a onclick="toggleAuthMode()">Sign up</a>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form" class="hidden">
+                <div class="form-group">
+                    <label for="signup-name">Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password (min 6 characters)" required>
+                </div>
+                <button class="btn" onclick="handleSignup()">✨ Create Account</button>
+                <div class="toggle-auth">
+                    Already have an account? <a onclick="toggleAuthMode()">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="app-container">
+        <div class="header">
+            <div class="header-left">
+                <div class="app-icon">📊</div>
+                <div class="app-title">
+                    <h1>Speed Math</h1>
+                    <p>Master math with practice</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div id="user-name" style="font-weight: bold;">User</div>
+                    <div id="sync-status" class="sync-status">Synced ✓</div>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="welcome-message">
+                <h2>Welcome back! 👋</h2>
+                <p>Your progress is automatically saved online</p>
+            </div>
+
+            <div class="stats-card">
+                <h3 style="color: #00bfff; margin-bottom: 15px;">Your Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value" id="total-sessions">0</div>
+                        <div class="stat-label">Sessions</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-value" id="total-correct">0</div>
+                        <div class="stat-label">Correct</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value" id="accuracy">0%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <p style="text-align: center; color: #8b949e;">
+                    ℹ️ This is a demo page. Full app features will be available after integration.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script>
+        // ========================================
+        // CONFIGURATION - UPDATE THESE VALUES
+        // ========================================
+        
+        // Replace with your Supabase project details
+        // Get these from: https://supabase.com/dashboard/project/_/settings/api
+        const SUPABASE_URL = 'https://fqxofqfktowlecyhxygc.supabase.co'; // e.g., 'https://xxxxx.supabase.co'
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxeG9mcWZrdG93bGVjeWh4eWdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwODQ3MjQsImV4cCI6MjA4NjY2MDcyNH0.B3YDJTqj8VvUmvmb1HVBxPuLHbDcuCQFBChGNLkx5Qg'; // Your anon/public key
+        
+        // Initialize Supabase client
+        let supabase;
+        try {
+            if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
+                supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.warn('Supabase credentials not configured. Using demo mode.');
+                supabase = null;
+            }
+        } catch (error) {
+            console.error('Supabase initialization error:', error);
+            supabase = null;
+        }
+        
+        // ========================================
+        // AUTHENTICATION FUNCTIONS
+        // ========================================
+        
+        let currentUser = null;
+        
+        // Check if user is already logged in
+        async function checkAuth() {
+            showLoading();
+            
+            if (!supabase) {
+                // Demo mode - check localStorage
+                const demoUser = localStorage.getItem('demoUser');
+                if (demoUser) {
+                    currentUser = JSON.parse(demoUser);
+                    showApp();
+                } else {
+                    hideLoading();
+                }
+                return;
+            }
+            
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    currentUser = session.user;
+                    await loadUserData();
+                    showApp();
+                } else {
+                    hideLoading();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                hideLoading();
+            }
+        }
+        
+        // Handle login
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                showError('Please fill in all fields');
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
+            
+            showLoading();
+            hideError();
+            
+            if (!supabase) {
+                // Demo mode
+                setTimeout(() => {
+                    const demoUser = {
+                        email: email,
+                        id: 'demo-' + Date.now(),
+                        created_at: new Date().toISOString()
+                    };
+                    localStorage.setItem('demoUser', JSON.stringify(demoUser));
+                    currentUser = demoUser;
+                    showApp();
+                    hideLoading();
+                }, 500);
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    hideLoading();
+                    showError(error.message);
+                    return;
+                }
+                
+                currentUser = data.user;
+                await loadUserData();
+                showApp();
+                hideLoading();
+                
+            } catch (error) {
+                hideLoading();
+                showError('Login failed: ' + error.message);
+            }
+        }
+        
+        // Handle signup
+        async function handleSignup() {
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            
+            if (!name || !email || !password) {
+                showError('Please fill in all fields');
+                return;
+            }
+            
+            if (!validateEmail(email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters long');
+                return;
+            }
+            
+            showLoading();
+            hideError();
+            
+            if (!supabase) {
+                // Demo mode
+                setTimeout(() => {
+                    const demoUser = {
+                        email: email,
+                        id: 'demo-' + Date.now(),
+                        user_metadata: { name: name },
+                        created_at: new Date().toISOString()
+                    };
+                    localStorage.setItem('demoUser', JSON.stringify(demoUser));
+                    currentUser = demoUser;
+                    showSuccess('Account created successfully! (Demo Mode)');
+                    setTimeout(() => {
+                        showApp();
+                        hideLoading();
+                    }, 1000);
+                }, 500);
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            name: name
+                        }
+                    }
+                });
+                
+                if (error) {
+                    hideLoading();
+                    showError(error.message);
+                    return;
+                }
+                
+                hideLoading();
+                showSuccess('Account created! Please check your email to verify your account.');
+                
+                // Auto login after signup (if email confirmation is not required)
+                setTimeout(() => {
+                    toggleAuthMode();
+                }, 2000);
+                
+            } catch (error) {
+                hideLoading();
+                showError('Signup failed: ' + error.message);
+            }
+        }
+        
+        // Handle logout
+        async function handleLogout() {
+            if (!confirm('Are you sure you want to logout?')) {
+                return;
+            }
+            
+            showLoading();
+            
+            if (!supabase) {
+                // Demo mode
+                localStorage.removeItem('demoUser');
+                currentUser = null;
+                hideLoading();
+                showAuth();
+                return;
+            }
+            
+            try {
+                const { error } = await supabase.auth.signOut();
+                
+                if (error) {
+                    console.error('Logout error:', error);
+                }
+                
+                currentUser = null;
+                hideLoading();
+                showAuth();
+                
+            } catch (error) {
+                console.error('Logout failed:', error);
+                hideLoading();
+                showAuth();
+            }
+        }
+        
+        // ========================================
+        // DATA MANAGEMENT FUNCTIONS
+        // ========================================
+        
+        // Load user data from database
+        async function loadUserData() {
+            if (!supabase || !currentUser) return;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('user_stats')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .single();
+                
+                if (data) {
+                    updateStatsDisplay(data);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+        
+        // Save user data to database
+        async function saveUserData(stats) {
+            if (!supabase || !currentUser) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('user_stats')
+                    .upsert({
+                        user_id: currentUser.id,
+                        total_sessions: stats.sessions,
+                        total_correct: stats.correct,
+                        total_questions: stats.questions,
+                        last_updated: new Date().toISOString()
+                    });
+                
+                if (error) {
+                    console.error('Error saving data:', error);
+                    updateSyncStatus(false);
+                } else {
+                    updateSyncStatus(true);
+                }
+            } catch (error) {
+                console.error('Error saving data:', error);
+                updateSyncStatus(false);
+            }
+        }
+        
+        // Update statistics display
+        function updateStatsDisplay(stats) {
+            document.getElementById('total-sessions').textContent = stats.total_sessions || 0;
+            document.getElementById('total-correct').textContent = stats.total_correct || 0;
+            
+            const accuracy = stats.total_questions > 0 
+                ? ((stats.total_correct / stats.total_questions) * 100).toFixed(1)
+                : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+        
+        // Update sync status indicator
+        function updateSyncStatus(synced) {
+            const statusEl = document.getElementById('sync-status');
+            if (synced) {
+                statusEl.textContent = 'Synced ✓';
+                statusEl.classList.add('synced');
+            } else {
+                statusEl.textContent = 'Sync failed';
+                statusEl.classList.remove('synced');
+            }
+        }
+        
+        // ========================================
+        // UI HELPER FUNCTIONS
+        // ========================================
+        
+        function showApp() {
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('app-container').classList.add('active');
+            
+            // Update user name
+            const userName = currentUser?.user_metadata?.name || currentUser?.email?.split('@')[0] || 'User';
+            document.getElementById('user-name').textContent = userName;
+        }
+        
+        function showAuth() {
+            document.getElementById('app-container').classList.remove('active');
+            document.getElementById('auth-container').classList.remove('hidden');
+        }
+        
+        function showLoading() {
+            document.getElementById('loading-screen').classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-screen').classList.add('hidden');
+        }
+        
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = '❌ ' + message;
+            errorEl.style.display = 'block';
+            setTimeout(() => errorEl.style.display = 'none', 5000);
+        }
+        
+        function hideError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+        
+        function showSuccess(message) {
+            const successEl = document.getElementById('success-message');
+            successEl.textContent = '✅ ' + message;
+            successEl.style.display = 'block';
+            setTimeout(() => successEl.style.display = 'none', 5000);
+        }
+        
+        function toggleAuthMode() {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            
+            if (loginForm.classList.contains('hidden')) {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            } else {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+            }
+            
+            hideError();
+        }
+        
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+        
+        // ========================================
+        // INITIALIZE APP
+        // ========================================
+        
+        // Check authentication status on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+        });
+        
+        // Listen for Enter key on login/signup forms
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const loginForm = document.getElementById('login-form');
+                if (!loginForm.classList.contains('hidden')) {
+                    handleLogin();
+                } else {
+                    handleSignup();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
