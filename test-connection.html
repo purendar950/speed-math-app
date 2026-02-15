@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Math - Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #ffffff;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1c2128;
+            border-radius: 16px;
+            padding: 30px;
+        }
+        h1 {
+            color: #00bfff;
+            margin-bottom: 20px;
+        }
+        .test-section {
+            background: #0d1117;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .status {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .status.loading {
+            background: rgba(255, 165, 0, 0.2);
+            color: orange;
+        }
+        .status.success {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+        }
+        .status.error {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4d6d;
+        }
+        .info {
+            background: rgba(0, 191, 255, 0.1);
+            border: 1px solid #00bfff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .error-details {
+            background: rgba(255, 77, 109, 0.1);
+            border: 1px solid #ff4d6d;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        button {
+            background: linear-gradient(135deg, #00bfff, #0080ff);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+        h2 {
+            color: #00bfff;
+            font-size: 20px;
+            margin: 20px 0 10px 0;
+        }
+        h3 {
+            color: #ffffff;
+            font-size: 16px;
+            margin: 15px 0 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Speed Math - Connection Diagnostic</h1>
+        <p style="color: #8b949e; margin-bottom: 20px;">This page will test your Supabase connection and help identify issues.</p>
+
+        <div class="test-section">
+            <h2>Connection Tests</h2>
+            
+            <div class="test-item" id="test-library">
+                <span>1. Supabase Library Loaded</span>
+                <span class="status loading">Testing...</span>
+            </div>
+            
+            <div class="test-item" id="test-config">
+                <span>2. Configuration Valid</span>
+                <span class="status loading">Testing...</span>
+            </div>
+            
+            <div class="test-item" id="test-connection">
+                <span>3. API Connection</span>
+                <span class="status loading">Testing...</span>
+            </div>
+            
+            <div class="test-item" id="test-auth">
+                <span>4. Authentication Service</span>
+                <span class="status loading">Testing...</span>
+            </div>
+            
+            <div class="test-item" id="test-table">
+                <span>5. Database Table Exists</span>
+                <span class="status loading">Testing...</span>
+            </div>
+        </div>
+
+        <div id="error-container"></div>
+
+        <div class="test-section">
+            <h2>Quick Tests</h2>
+            <button onclick="testSignup()">🧪 Test Signup</button>
+            <button onclick="testLogin()">🔑 Test Login</button>
+            <button onclick="retestAll()">🔄 Retest All</button>
+            
+            <div id="test-results"></div>
+        </div>
+
+        <div class="info">
+            <strong>📋 Your Configuration:</strong><br>
+            Project ID: <code>fqxofqfktowlecyhxygc</code><br>
+            Status: <span id="config-status">Checking...</span>
+        </div>
+
+        <div class="test-section">
+            <h2>Common Issues & Solutions</h2>
+            
+            <h3>❌ If Table Test Fails:</h3>
+            <div class="code-block">
+1. Go to: https://supabase.com/dashboard/project/fqxofqfktowlecyhxygc/sql/new
+
+2. Run this SQL:
+
+CREATE TABLE user_stats (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users NOT NULL,
+  total_sessions INTEGER DEFAULT 0,
+  total_correct INTEGER DEFAULT 0,
+  total_questions INTEGER DEFAULT 0,
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id)
+);
+
+ALTER TABLE user_stats ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own stats"
+  ON user_stats FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own stats"
+  ON user_stats FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own stats"
+  ON user_stats FOR UPDATE
+  USING (auth.uid() = user_id);
+            </div>
+
+            <h3>❌ If Signup Fails with "Email not confirmed":</h3>
+            <div class="code-block">
+1. Go to: https://supabase.com/dashboard/project/fqxofqfktowlecyhxygc/auth/providers
+
+2. Click "Email" provider
+
+3. Disable "Enable email confirmations"
+
+4. Click Save
+            </div>
+
+            <h3>❌ If Connection Fails:</h3>
+            <div class="code-block">
+1. Check your internet connection
+
+2. Verify Supabase project is active:
+   https://supabase.com/dashboard/project/fqxofqfktowlecyhxygc
+
+3. Make sure API keys are correct (check Settings → API)
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://fqxofqfktowlecyhxygc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxeG9mcWZrdG93bGVjeWh4eWdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwODQ3MjQsImV4cCI6MjA4NjY2MDcyNH0.B3YDJTqj8VvUmvmb1HVBxPuLHbDcuCQFBChGNLkx5Qg';
+
+        let supabase;
+        let testResults = {};
+
+        async function runAllTests() {
+            testResults = {};
+            
+            // Test 1: Library loaded
+            await testLibrary();
+            
+            // Test 2: Configuration
+            await testConfiguration();
+            
+            // Test 3: Connection
+            await testConnection();
+            
+            // Test 4: Auth service
+            await testAuthService();
+            
+            // Test 5: Database table
+            await testTable();
+            
+            displaySummary();
+        }
+
+        async function testLibrary() {
+            const testId = 'test-library';
+            try {
+                if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+                    updateStatus(testId, 'success', '✓ Loaded');
+                    testResults.library = true;
+                    
+                    // Initialize Supabase
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    return true;
+                } else {
+                    throw new Error('Supabase library not loaded');
+                }
+            } catch (error) {
+                updateStatus(testId, 'error', '✗ Failed');
+                showError('Library Error', error.message);
+                testResults.library = false;
+                return false;
+            }
+        }
+
+        async function testConfiguration() {
+            const testId = 'test-config';
+            try {
+                if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+                    throw new Error('Supabase URL not configured');
+                }
+                if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+                    throw new Error('Supabase API Key not configured');
+                }
+                if (!SUPABASE_URL.includes('supabase.co')) {
+                    throw new Error('Invalid Supabase URL format');
+                }
+                
+                updateStatus(testId, 'success', '✓ Valid');
+                document.getElementById('config-status').textContent = '✓ Configured correctly';
+                document.getElementById('config-status').style.color = '#00ff00';
+                testResults.config = true;
+                return true;
+            } catch (error) {
+                updateStatus(testId, 'error', '✗ Invalid');
+                document.getElementById('config-status').textContent = '✗ ' + error.message;
+                document.getElementById('config-status').style.color = '#ff4d6d';
+                showError('Configuration Error', error.message);
+                testResults.config = false;
+                return false;
+            }
+        }
+
+        async function testConnection() {
+            const testId = 'test-connection';
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase not initialized');
+                }
+                
+                // Try to get session (this tests the connection)
+                const { data, error } = await supabase.auth.getSession();
+                
+                if (error) throw error;
+                
+                updateStatus(testId, 'success', '✓ Connected');
+                testResults.connection = true;
+                return true;
+            } catch (error) {
+                updateStatus(testId, 'error', '✗ Failed');
+                showError('Connection Error', error.message + '\n\nCheck:\n- Internet connection\n- Supabase project is active\n- API keys are correct');
+                testResults.connection = false;
+                return false;
+            }
+        }
+
+        async function testAuthService() {
+            const testId = 'test-auth';
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase not initialized');
+                }
+                
+                // Test auth service by checking settings
+                const { data, error } = await supabase.auth.getSession();
+                
+                if (error && error.message !== 'Auth session missing!') {
+                    throw error;
+                }
+                
+                updateStatus(testId, 'success', '✓ Active');
+                testResults.auth = true;
+                return true;
+            } catch (error) {
+                updateStatus(testId, 'error', '✗ Failed');
+                showError('Auth Service Error', error.message);
+                testResults.auth = false;
+                return false;
+            }
+        }
+
+        async function testTable() {
+            const testId = 'test-table';
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase not initialized');
+                }
+                
+                // Try to query the user_stats table (will fail if table doesn't exist)
+                const { data, error } = await supabase
+                    .from('user_stats')
+                    .select('id')
+                    .limit(1);
+                
+                if (error) {
+                    if (error.message.includes('relation "public.user_stats" does not exist')) {
+                        throw new Error('Table "user_stats" does not exist. Please create it using the SQL above.');
+                    }
+                    throw error;
+                }
+                
+                updateStatus(testId, 'success', '✓ Exists');
+                testResults.table = true;
+                return true;
+            } catch (error) {
+                updateStatus(testId, 'error', '✗ Missing');
+                showError('Database Table Error', error.message);
+                testResults.table = false;
+                return false;
+            }
+        }
+
+        async function testSignup() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<p style="color: #00bfff; margin-top: 15px;">🧪 Testing signup with test account...</p>';
+            
+            const testEmail = 'test' + Date.now() + '@speedmath.test';
+            const testPassword = 'test123456';
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: testEmail,
+                    password: testPassword,
+                    options: {
+                        data: {
+                            name: 'Test User'
+                        }
+                    }
+                });
+                
+                if (error) throw error;
+                
+                resultsDiv.innerHTML = `
+                    <div class="info" style="margin-top: 15px;">
+                        <strong>✅ Signup Test Successful!</strong><br><br>
+                        Test Email: ${testEmail}<br>
+                        Test Password: ${testPassword}<br><br>
+                        ${data.user.identities.length === 0 ? 
+                            '<span style="color: orange;">⚠️ Email confirmation required. Check the email or disable email confirmations in Supabase settings.</span>' : 
+                            '<span style="color: #00ff00;">✓ Account created successfully!</span>'
+                        }
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error-details" style="margin-top: 15px;">
+                        <strong>❌ Signup Test Failed:</strong><br>
+                        ${error.message}<br><br>
+                        <strong>Possible causes:</strong><br>
+                        - Database table not created<br>
+                        - Email confirmation enabled (check email or disable in settings)<br>
+                        - Network issue
+                    </div>
+                `;
+            }
+        }
+
+        async function testLogin() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<p style="color: #00bfff; margin-top: 15px;">🔑 To test login, first create an account using the signup test, then enter credentials here...</p>';
+            
+            const email = prompt('Enter test email:');
+            const password = prompt('Enter test password:');
+            
+            if (!email || !password) {
+                resultsDiv.innerHTML = '<p style="color: orange; margin-top: 15px;">⚠️ Test cancelled</p>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<p style="color: #00bfff; margin-top: 15px;">🔄 Testing login...</p>';
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                resultsDiv.innerHTML = `
+                    <div class="info" style="margin-top: 15px;">
+                        <strong>✅ Login Test Successful!</strong><br><br>
+                        User ID: ${data.user.id}<br>
+                        Email: ${data.user.email}<br>
+                        <br>
+                        <strong style="color: #00ff00;">✓ Authentication is working correctly!</strong>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error-details" style="margin-top: 15px;">
+                        <strong>❌ Login Test Failed:</strong><br>
+                        ${error.message}<br><br>
+                        <strong>Possible causes:</strong><br>
+                        - Wrong email or password<br>
+                        - Email not confirmed (if confirmation is enabled)<br>
+                        - Account doesn't exist
+                    </div>
+                `;
+            }
+        }
+
+        function updateStatus(testId, status, text) {
+            const statusEl = document.querySelector(`#${testId} .status`);
+            statusEl.className = `status ${status}`;
+            statusEl.textContent = text;
+        }
+
+        function showError(title, message) {
+            const errorContainer = document.getElementById('error-container');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-details';
+            errorDiv.innerHTML = `<strong>${title}:</strong><br>${message}`;
+            errorContainer.appendChild(errorDiv);
+        }
+
+        function displaySummary() {
+            const passed = Object.values(testResults).filter(r => r === true).length;
+            const total = Object.values(testResults).length;
+            
+            const errorContainer = document.getElementById('error-container');
+            
+            if (passed === total) {
+                errorContainer.innerHTML = `
+                    <div class="info">
+                        <strong>🎉 All Tests Passed! (${passed}/${total})</strong><br><br>
+                        Your Supabase connection is working correctly!<br>
+                        You can now use the main Speed Math app.<br><br>
+                        Try the signup and login tests above to verify everything works.
+                    </div>
+                `;
+            } else {
+                errorContainer.innerHTML = `
+                    <div class="error-details">
+                        <strong>⚠️ Some Tests Failed (${passed}/${total} passed)</strong><br><br>
+                        Please fix the issues above and click "Retest All".
+                    </div>
+                ` + errorContainer.innerHTML;
+            }
+        }
+
+        function retestAll() {
+            document.getElementById('error-container').innerHTML = '';
+            document.getElementById('test-results').innerHTML = '';
+            
+            // Reset all status
+            document.querySelectorAll('.status').forEach(el => {
+                el.className = 'status loading';
+                el.textContent = 'Testing...';
+            });
+            
+            runAllTests();
+        }
+
+        // Run tests on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(runAllTests, 500);
+        });
+    </script>
+</body>
+</html>
